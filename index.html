@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="A viewer for NetBots matches">		
+        <title>
+            MatchDebugger
+        </title>
+    </head>
+    <body>
+        <div id="skirmish-options" class="container">
+			<label>Red <input type="text" id="red-address" placeholder="Red Address"></label>
+			<label>Blue <input type="text" id="blue-address" placeholder="Blue Address"></label>
+			<button id="new-game" class="btn">Fight!</button>
+        </div>
+        <br />
+		<canvas id="game" height="500" width="500" style="border-color: lightgrey; border-style: solid; border-width:2px;"></canvas>
+			<div>
+			<h3>Red Player</h3>
+			<label>Number of Bots: <span id="red-count">1</span></label>
+			<label>Energy: <span id="red-energy">1</span></label>
+			<div id="red-game-end-message"></div>
+			</div>
+			<div>
+			<h3 id="blue-name">Blue Player</h3>
+			<label>Number of Bots: <span id="blue-count" class="col-sm-2">1</span></label>
+			<label>Energy: <span id="blue-energy">1</span></label>
+			<div id="blue-game-end-message"></div>
+			</div>
+		<lable>Turn: <span id="turn-number"></span></label>
+		<p id="seed-output"></p>
+		<div style="display:none">
+			<img id="energy-image" src="iconSprite.png" alt="energy" />
+		</div>
+        <script src="jquery-1.11.1.min.js"></script>
+        <script src="warViewer.js"></script>
+        <script src="GameState.js"></script>
+        <script type="text/javascript">
+            $("#new-game").on('click', function () {
+                var clientAddress = $("#client-address").val();
+                var seed = getSetSeed();
+                var enemyBot = $('#enemy-selection').val();
+                var side = getSide();
+                if (side == "P1") {
+                    $('#blue-name').text($('#enemy-selection option:selected').text());
+                    $('#red-name').text("Your bot");
+                }
+                if (side == "P2") {
+                    $('#red-name').text($('#enemy-selection option:selected').text());
+                    $('#blue-name').text("Your bot");
+                }
+                $.ajax({
+                    url: rootAddress + "startgame",
+                    type: "POST",
+                    data: { opponentId: enemyBot, side: side, seed: seed },
+                    dataType: "json",
+                    success: function (gameState) {
+                        showTurn(gameState);
+                        runGame(gameState);
+                    },
+                    error: function (error) {
+                        writeError(error);
+                    }
+                });
+            });
+
+            function getSetSeed() {
+                var seed = $("#seed").val();
+                if (seed.length < 1) {
+                    seed = Math.ceil(Math.random() * 100000000);
+                    $("#seed-output").text("Your game's seed value is " + seed + "\r\n" +
+                        "Enter this value above to replay energy spawn positions in a future game" +
+                        "Note: Enemy bots may use their own hidden randomizers in their algorithms, " +
+                        "so it may not be possible to replay the game exactly");
+                }
+                return seed;
+            }
+
+            function getMoves(moveRequest) {
+                var clientAddress = $("#client-address").val();
+                $.ajax({
+                    url: "relay.json",
+                    type: "POST",
+                    data: JSON.stringify({ payload: moveRequest, destination: clientAddress }),
+                    dataType: "json",
+                    success: function (localMoves) {
+                        updateGame(localMoves, moveRequest.state);
+                    },
+                    error: function(error) {
+                        writeError(error);
+                    }
+                });
+            }
+
+            function updateGame(localMoves, gameState) {
+                $.ajax({
+                    url: rootAddress + "updategame",
+                    type: "POST",
+                    data: { clientMoves: localMoves, gameState: gameState },
+                    success: function (newGameState) {
+                        if (newGameState.turnsElapsed < newGameState.maxTurns) {
+                            showTurn(newGameState);
+                            if (newGameState.winner == null) {
+                                runGame(newGameState);
+                            }
+                        }
+                    },
+                    error: function (error) {
+                        writeError(error);
+                    }
+                });
+            }
+
+            function writeError(error) {
+                alert("Error: " + error.responseText);
+            }
+
+            function runGame(gameState) {
+                var moveRequest = new Object();
+                moveRequest.player = getSide();
+                moveRequest.state = gameState;
+                if ($('#cors-on').is(':checked')) {
+                    getMovesCors(moveRequest);
+                } else {
+                    getMoves(moveRequest);
+                }
+                
+            }
+
+        </script>
+    </body>
+</html>
