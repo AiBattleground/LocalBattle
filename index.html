@@ -29,7 +29,7 @@
 			<label>Energy: <span id="blue-energy">1</span></label>
 			<div id="blue-game-end-message"></div>
 			</div>
-		<lable>Turn: <span id="turn-number"></span></label>
+		<label>Turn: <span id="turn-number"></span></label>
 		<p id="seed-output"></p>
 		<div style="display:none">
 			<img id="energy-image" src="iconSprite.png" alt="energy" />
@@ -37,8 +37,10 @@
         <script src="jquery-1.11.1.min.js"></script>
         <script src="warViewer.js"></script>
         <script src="GameState.js"></script>
+		<script src="Game.js"></script>
+		<script src="bot.js"></script>
         <script type="text/javascript">
-            $("#new-game").on('click', function () {
+            $("#nothing").on('click', function () {
                 var clientAddress = $("#client-address").val();
                 var seed = getSetSeed();
                 var enemyBot = $('#enemy-selection').val();
@@ -65,18 +67,25 @@
                     }
                 });
             });
-
-            function getSetSeed() {
-                var seed = $("#seed").val();
-                if (seed.length < 1) {
-                    seed = Math.ceil(Math.random() * 100000000);
-                    $("#seed-output").text("Your game's seed value is " + seed + "\r\n" +
-                        "Enter this value above to replay energy spawn positions in a future game" +
-                        "Note: Enemy bots may use their own hidden randomizers in their algorithms, " +
-                        "so it may not be possible to replay the game exactly");
-                }
-                return seed;
-            }
+			var game = new Game();
+			$("#new-game").on('click', function () {
+				var bot1 = new bot();
+				var gameState = game.create(20,20,200);
+				showTurn(gameState);
+				play(game.create(20,20,200), bot1, bot1);
+			});
+			
+			function play (gameState, bot1, bot2) {
+			  setTimeout(function () {
+					p1Moves = bot1.getMoves({State: gameState, Player: 'p1'});
+					p2Moves = bot1.getMoves({State: gameState, Player: 'p2'});
+					gameState = game.doTurn(gameState, p1Moves, p2Moves, false);
+					showTurn(gameState);
+				if (gameState.turnsElapsed < gameState.maxTurns) { 
+				  play(gameState, bot1, bot2);
+				}
+			  }, 300);
+			};
 
             function getMoves(moveRequest) {
                 var clientAddress = $("#client-address").val();
