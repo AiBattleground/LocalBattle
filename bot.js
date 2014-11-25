@@ -1,8 +1,11 @@
-function bot(){
+function bot(player){
 	var self = this;
+	var player = player;
 	self.getMoves = function(game) {
-		var state = game.State;
-		var player = game.Player
+		if(player == null){
+			player = game.Player;
+		}
+		var state = game.State || game;
 		var energy;
 		var spawn;
 		var enemyenergy;
