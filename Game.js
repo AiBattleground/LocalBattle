@@ -18,6 +18,10 @@ function Game(){
 		spawn: 1
 	};
 	var spawnFrequency = 5;
+	var players = {
+		player1: 'p1',
+		player2: 'p2'
+	}
 
 	exports.create = function (rows, cols, maxTurns) {
 		var gameState = {
@@ -28,11 +32,11 @@ function Game(){
 		};
 
 		gameState.p1 = {
-			energy: 10,
+			energy: 1,
 			spawn: coordToIndex(gameState, { x: 1, y: 1 })
 		};
 		gameState.p2 = {
-			energy: 10,
+			energy: 1,
 			spawn: coordToIndex(gameState, { x: cols - 2, y: rows - 2 })
 		};
 		gameState.grid = makeEmptyGrid(gameState.rows, gameState.cols);
@@ -48,11 +52,11 @@ function Game(){
 			return state;
 		}
 		else if (!p1Valid) {
-			state.winner = gridIds.player2;
+			state.winner = players.player2;
 			return state;
 		}
 		else if (!p2Valid) {
-			state.winner = gridIds.player1;
+			state.winner = players.player1;
 			return state;
 		}
 
@@ -229,15 +233,15 @@ function Game(){
 
 		if (state.turnsElapsed >= state.maxTurns || !numP1 || !numP2) {
 			if (numP1 > numP2) {
-				state.winner = gridIds.player1;
+				state.winner = players.player1;
 			}
 			else if (numP2 > numP1) {
-				state.winner = gridIds.player2;
+				state.winner = players.player2;
 			}
 			else {
 				var i = ~~(Math.random() * 2);
-				if (i) state.winner = gridIds.player1;
-				else state.winner = gridIds.player2;
+				if (i) state.winner = players.player1;
+				else state.winner = players.player2;
 			}
 		}
 
