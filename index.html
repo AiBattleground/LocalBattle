@@ -34,41 +34,13 @@
 		<div style="display:none">
 			<img id="energy-image" src="iconSprite.png" alt="energy" />
 		</div>
-        <script src="jquery-1.11.1.min.js"></script>
         <script src="warViewer.js"></script>
         <script src="GameState.js"></script>
 		<script src="Game.js"></script>
 		<script src="bot.js"></script>
         <script type="text/javascript">
-            $("#nothing").on('click', function () {
-                var clientAddress = $("#client-address").val();
-                var seed = getSetSeed();
-                var enemyBot = $('#enemy-selection').val();
-                var side = getSide();
-                if (side == "P1") {
-                    $('#blue-name').text($('#enemy-selection option:selected').text());
-                    $('#red-name').text("Your bot");
-                }
-                if (side == "P2") {
-                    $('#red-name').text($('#enemy-selection option:selected').text());
-                    $('#blue-name').text("Your bot");
-                }
-                $.ajax({
-                    url: rootAddress + "startgame",
-                    type: "POST",
-                    data: { opponentId: enemyBot, side: side, seed: seed },
-                    dataType: "json",
-                    success: function (gameState) {
-                        showTurn(gameState);
-                        runGame(gameState);
-                    },
-                    error: function (error) {
-                        writeError(error);
-                    }
-                });
-            });
 			var game = new Game();
-			$("#new-game").on('click', function () {
+			document.getElementById('new-game').addEventListener('click', function (e) {
 				var bot1 = new bot();
 				var gameState = game.create(20,20,200);
 				showTurn(gameState);
@@ -84,60 +56,9 @@
 				if (gameState.turnsElapsed < gameState.maxTurns) { 
 				  play(gameState, bot1, bot2);
 				}
-			  }, 300);
+			  }, 100);
 			};
-
-            function getMoves(moveRequest) {
-                var clientAddress = $("#client-address").val();
-                $.ajax({
-                    url: "relay.json",
-                    type: "POST",
-                    data: JSON.stringify({ payload: moveRequest, destination: clientAddress }),
-                    dataType: "json",
-                    success: function (localMoves) {
-                        updateGame(localMoves, moveRequest.state);
-                    },
-                    error: function(error) {
-                        writeError(error);
-                    }
-                });
-            }
-
-            function updateGame(localMoves, gameState) {
-                $.ajax({
-                    url: rootAddress + "updategame",
-                    type: "POST",
-                    data: { clientMoves: localMoves, gameState: gameState },
-                    success: function (newGameState) {
-                        if (newGameState.turnsElapsed < newGameState.maxTurns) {
-                            showTurn(newGameState);
-                            if (newGameState.winner == null) {
-                                runGame(newGameState);
-                            }
-                        }
-                    },
-                    error: function (error) {
-                        writeError(error);
-                    }
-                });
-            }
-
-            function writeError(error) {
-                alert("Error: " + error.responseText);
-            }
-
-            function runGame(gameState) {
-                var moveRequest = new Object();
-                moveRequest.player = getSide();
-                moveRequest.state = gameState;
-                if ($('#cors-on').is(':checked')) {
-                    getMovesCors(moveRequest);
-                } else {
-                    getMoves(moveRequest);
-                }
-                
-            }
-
+			showTurn(game.create(20,20,200));
         </script>
     </body>
 </html>
