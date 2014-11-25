@@ -10,35 +10,35 @@ function setPlayerCount(grid) {
             blueCount++;
         }
     }
-    $('#blue-count').text(blueCount);
-    $('#red-count').text(redCount);
+    document.getElementById('blue-count').innerHTML = blueCount;
+    document.getElementById('red-count').innerHTML = redCount;
 }
 
 function setWinner(state) {
     if (state.winner != null) {
-        $('#blue-wrap').removeClass('alert-info');
-        $('#red-wrap').removeClass('alert-danger');
+        var blueInfo = document.getElementById('blue-wrap');
+        var redInfo = document.getElementById('red-wrap');
         if (state.winner == 'p1') {
-            $('#red-game-end-message').text("Winner!");
-            $('#blue-game-end-message').text("Loser!");
-            $('#red-wrap').addClass('alert-success');
-            $('#blue-wrap').addClass('alert-warning');
+            document.getElementById('red-game-end-message').innerHTML = "Winner!";
+            document.getElementById('blue-game-end-message').innerHTML = "Loser!";
+			redInfo.className = 'alert-success';
+            blueInfo.className = 'alert-warning';
         }
         else if (state.winner == 'p2') {
-            $('#blue-game-end-message').text("Winner!");
-            $('#red-game-end-message').text("Loser!");
-            $('#blue-wrap').addClass('alert-success');
-            $('#red-wrap').addClass('alert-warning');
+			document.getElementById('blue-game-end-message').innerHTML = "Winner!";
+            document.getElementById('red-game-end-message').innerHTML = "Loser!";
+			blueInfo.className = 'alert-success';
+            redInfo.className = 'alert-warning';
         }
     }
 }
 
 function showTurn(state) {
     setPlayerCount(state.grid);
-    $('#red-energy').text(state.p1.energy);
-    $('#blue-energy').text(state.p2.energy);
+	document.getElementById('red-energy').innerHTML = state.p1.energy;
+	document.getElementById('blue-energy').innerHTML = state.p2.energy;
     setWinner(state);
-    $('#turn-number').text(state.turnsElapsed + " / " + state.maxTurns);
+    document.getElementById('turn-number').innerHTML = state.turnsElapsed + " / " + state.maxTurns;
     ctx.clearRect(0, 0, c.width, c.height);
     ctx.strokeStyle = 'lightgrey';
     var coordWidth = c.width / state.cols;
@@ -135,15 +135,11 @@ function showTurn(state) {
             }
         }
     }
-    $('#p1 .headcount').html(p1Headcount);
-    $('#p2 .headcount').html(p2Headcount);
-    $('#p1 .energyconsumed').html(state.p1.energy);
-    $('#p2 .energyconsumed').html(state.p2.energy);
 }
 
 function indexToCoord(state, index) {
     var x = index % state.cols;
-    var y = ~~(index / state.cols);
+    var y = Math.floor(index / state.cols);
     return { x: x, y: y };
 }
 
@@ -152,19 +148,6 @@ var energyImage;
 c = document.getElementById('game');
 ctx = c.getContext('2d');
 energyImage = document.getElementById("energy-image");
-energyImage.onload = function () {
-    showTurn({
-        rows: 20, cols: 20, maxTurns: 0, turnsElapsed: 0,
-        grid: "................................................................................................................................................................................................................................................................................................................................................................................................................",
-        maxTurns: 200,
-        p1: {
-            energy: 1,
-            spawn: 21
-        },
-        p2: {
-            energy: 1,
-            spawn: 378
-        }
-    });
-}
+
+
 
