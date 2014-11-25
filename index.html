@@ -11,19 +11,23 @@
     </head>
     <body>
         <div id="skirmish-options" class="container">
-			<label>Red <input type="text" id="red-address" placeholder="Red Address"></label>
-			<label>Blue <input type="text" id="blue-address" placeholder="Blue Address"></label>
-			<button id="new-game" class="btn">Fight!</button>
+			<div  style="margin-bottom: 10px;">
+				<label>Red <input type="text" id="red-address" placeholder="Red Address" size="40"></label>
+			</div>
+			<div>
+				<label>Blue <input type="text" id="blue-address" placeholder="Blue Address" size="40"></label>
+				<button id="new-game" class="btn">Fight!</button>
+			</div>
         </div>
         <br />
 		<canvas id="game" height="500" width="500" style="border-color: lightgrey; border-style: solid; border-width:2px;"></canvas>
-			<div>
+			<div id="red-wrap">
 			<h3>Red Player</h3>
 			<label>Number of Bots: <span id="red-count">1</span></label>
 			<label>Energy: <span id="red-energy">1</span></label>
 			<div id="red-game-end-message"></div>
 			</div>
-			<div>
+			<div id="blue-wrap">
 			<h3 id="blue-name">Blue Player</h3>
 			<label>Number of Bots: <span id="blue-count" class="col-sm-2">1</span></label>
 			<label>Energy: <span id="blue-energy">1</span></label>
@@ -41,24 +45,67 @@
         <script type="text/javascript">
 			var game = new Game();
 			document.getElementById('new-game').addEventListener('click', function (e) {
-				var bot1 = new bot();
+				var bot1 = new RemoteBot(document.getElementById('red-address').value, 'p1');
+				var bot2 = new RemoteBot(document.getElementById('blue-address').value, 'p2');
 				var gameState = game.create(20,20,200);
 				showTurn(gameState);
-				play(game.create(20,20,200), bot1, bot1);
+				play(gameState, bot1, bot2);
 			});
 			
 			function play (gameState, bot1, bot2) {
 			  setTimeout(function () {
-					p1Moves = bot1.getMoves({State: gameState, Player: 'p1'});
-					p2Moves = bot1.getMoves({State: gameState, Player: 'p2'});
-					gameState = game.doTurn(gameState, p1Moves, p2Moves, false);
+					p1Moves = bot1.getMoves(gameState);
+					p2Moves = bot2.getMoves(gameState);
+					gameState = game.doTurn(gameState, p1Moves || [], p2Moves || [], false);
 					showTurn(gameState);
-				if (gameState.turnsElapsed < gameState.maxTurns) { 
+				if (gameState.turnsElapsed < gameState.maxTurns && gameState.winner == null) { 
 				  play(gameState, bot1, bot2);
 				}
 			  }, 100);
 			};
 			showTurn(game.create(20,20,200));
+			
+			function getMoves(botUrl, request){
+				var r = new XMLHttpRequest(); 
+				r.open("POST", botUrl, false);
+				r.onreadystatechange = function () {
+					if (r.readyState != 4 || r.status != 200) return; 
+					alert(r.responseText);
+				};
+				r.setRequestHeader('Content-Type', 'application/json');
+				r.send(JSON.stringify(request));
+				var moves = [];
+				try{moves = JSON.parse(r.response)}
+				catch(e){}
+				return moves;
+			}
+			
+			function RemoteBot(botUrl, player){
+				var exports = this;
+				var player = player;
+				var botUrl = botUrl;
+				function getRequest(){
+					var r = new XMLHttpRequest(); 
+					r.open("POST", botUrl, false);
+					r.onreadystatechange = function () {
+						if (r.readyState != 4 || r.status != 200) return; 
+						alert(r.responseText);
+					};
+					r.setRequestHeader('Content-Type', 'application/json');
+					return r;
+				}
+				exports.getMoves = function(gameState){
+					var data = {State: gameState, Player: player};
+					var r = getRequest()
+					r.send(JSON.stringify(data));
+					var moves = [];
+					try{moves = JSON.parse(r.response)}
+					catch(e){}
+					return moves;
+				}
+			}
+			
         </script>
     </body>
 </html>
+
